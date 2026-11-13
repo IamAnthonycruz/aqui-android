@@ -8,6 +8,9 @@ the people you chose find out where.
 - No internet permission. Your location only leaves the phone inside the texts you set up.
 - A small log stays on the phone (see "What is stored").
 
+> **Not an emergency service.** Aqui! is a convenience, not a safety guarantee. Texts can arrive late
+> or not at all. In an emergency, call 911 or your local emergency number. See "Disclaimer" below.
+
 ## Requirements
 | | |
 |---|---|
@@ -112,6 +115,20 @@ All of it in a local database (`ping_log.db`) that never leaves the phone. Backu
 
 ## Release build
 `./gradlew assembleRelease` makes a ~3 MB APK in `app/build/outputs/apk/release/`.
+
+## Disclaimer
+- **Provided "as is", with no warranty.** The authors are not liable for any harm, loss, or cost from
+  using it, as set out in sections 15 and 16 of the GPL-3.0 (`LICENSE`).
+- **Don't rely on it for your safety.** A text can be late, wrong, or never sent, for example when:
+  - the phone has no signal, is off, or its battery is dead
+  - Android or a battery saver stops the app in the background
+  - a permission was turned off, or the carrier blocks or delays the text
+  - the location is off by tens or hundreds of meters (it uses Wi-Fi and cell towers, not GPS)
+  - a number or setting was entered wrong
+- **Texts are sent from your number.** You pay your carrier's usual rates, and you decide who gets your location.
+- **Only install it on your own phone.** It always shows a notification while it runs. Using it to track
+  someone without their knowledge may be illegal where you live.
+- Map links open Google Maps. Aqui! is not affiliated with Google.
 
 ## License
 Copyright (C) 2026 IamAnthonycruz. Aqui! was created by IamAnthonycruz (github.com/IamAnthonycruz).
