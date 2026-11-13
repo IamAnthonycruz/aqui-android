@@ -1,3 +1,9 @@
+import java.util.Properties
+
+// Machine-only settings (never committed): SDK path and the release signing key.
+val local = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
 
 plugins {
     id("com.android.application")
@@ -19,14 +25,26 @@ android {
 
     }
 
+    // Release key: set RELEASE_STORE_FILE, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS and
+    // RELEASE_KEY_PASSWORD in local.properties. Without them, release builds use the debug key
+    // (fine for trying it out, but such an APK can't update one signed with the real key).
+    val releaseStore = local.getProperty("RELEASE_STORE_FILE")?.let { file(it) }?.takeIf { it.exists() }
+    signingConfigs {
+        if (releaseStore != null) create("release") {
+            storeFile = releaseStore
+            storePassword = local.getProperty("RELEASE_STORE_PASSWORD")
+            keyAlias = local.getProperty("RELEASE_KEY_ALIAS")
+            keyPassword = local.getProperty("RELEASE_KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
             // R8 drops unused code (most of material-icons-extended) and unused resources.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // TODO(#18): a real release key before the first public APK.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (releaseStore != null) "release" else "debug")
             // Phones are ARM: leave out x86 native code (emulator-only; debug builds keep it).
             ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
         }

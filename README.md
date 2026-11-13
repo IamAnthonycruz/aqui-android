@@ -115,6 +115,10 @@ All of it in a local database (`ping_log.db`) that never leaves the phone. Backu
 
 ## Release build
 `./gradlew assembleRelease` makes a ~3 MB APK in `app/build/outputs/apk/release/`.
+Without a key of your own it is signed with the debug key. To sign with yours, add
+`RELEASE_STORE_FILE`, `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` to
+`local.properties`. Android only installs an update signed with the same key as the installed app,
+so your build can't update the official APK, or the other way round.
 
 ## Disclaimer
 - **Provided "as is", with no warranty.** The authors are not liable for any harm, loss, or cost from
