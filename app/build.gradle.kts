@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.dwellping"
+    namespace = "io.github.iamanthonycruz.aqui"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.dwellping.open"
+        applicationId = "io.github.iamanthonycruz.aqui"
         minSdk = 29
         targetSdk = 35
         versionCode = 1

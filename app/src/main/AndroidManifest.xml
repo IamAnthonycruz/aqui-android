@@ -22,7 +22,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="Aqui!"
-        android:theme="@style/Theme.DwellPing">
+        android:theme="@style/Theme.Aqui">
 
         <activity
             android:name=".MainActivity"

@@ -8,7 +8,31 @@ the people you chose find out where.
 - No internet permission. Your location only leaves the phone inside the texts you set up.
 - A small log stays on the phone (see "What is stored").
 
-(Code name: DwellPing. The package and code still use that name.)
+## Requirements
+| | |
+|---|---|
+| Android | 10 or newer (API 29+). Built for Android 15 (API 35). |
+| Phone | An Android phone with a SIM and a plan that can send SMS. Texts are normal SMS from your number, so your carrier's usual SMS rates apply. Wi-Fi-only tablets can't send texts. |
+| Google Play services | Required. Location comes from Google's fused location provider, so phones without Play services (e.g. Huawei, de-Googled ROMs) won't get fixes. |
+| Location | Location turned on, with Wi-Fi scanning recommended indoors. GPS is not needed. |
+| Storage | About 3 MB download, about 3 MB installed. The on-phone log adds about 1–2 MB at most: old rows are deleted automatically (see "What is stored"). |
+| Internet | Not needed. Street addresses in texts use the phone's own address lookup; without a connection the text says "this spot" and still includes the map link. |
+| Battery | One low-power location fix a minute while it's on. Set the app's battery use to Unrestricted, or the phone may pause it. |
+
+Tested on a Pixel 9a (Android 17) and the Android 15 emulator.
+
+## Permissions
+| Permission | Why |
+|---|---|
+| Location, "Allow all the time" | To notice you've stayed in one place while the app is closed. |
+| SMS | To send the texts, from your own number. |
+| Notifications | For the "Aqui! is on" notification Android requires while location runs. |
+| Phone (optional) | Some carriers make Android check the SIM before sending a long text in parts. Aqui! never makes calls. |
+| Battery unrestricted (optional) | So the phone doesn't pause it in the background. |
+| Run at startup | To start again after a reboot or an update, if it was on. |
+
+Run at startup is granted on install. The app asks for the others on first launch and says why;
+you can skip any and allow it later in Settings.
 
 ## How it works
 - While it's on, the app gets a location fix about once a minute (Wi-Fi/cell, not GPS).
@@ -27,7 +51,12 @@ the people you chose find out where.
   your battery hits 10%.
 
 ## Install
-Download the APK from the website and open it on your phone (allow "install unknown apps" when asked).
+1. Download the APK from the website on your phone.
+2. Open it. Android asks to allow installing from your browser: allow it, then tap Install.
+   Google Play Protect may say it doesn't recognize the app; tap "Install anyway". (It isn't on the Play Store.)
+3. Open Aqui! and follow the setup pages.
+
+To update, install the new APK over the old one. Your people and settings stay.
 
 ## Build it yourself
 1. Install Android Studio. Open this folder (File > Open). Let it sync Gradle.

@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "DwellPing"
+rootProject.name = "Aqui"
 include(":app")
