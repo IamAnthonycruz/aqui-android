@@ -199,8 +199,14 @@ private fun FieldBox(
 
 /** The main action: full-width green pill. */
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVector? = null) {
-    PillButton(text, onClick, Covered, OnCovered, modifier, icon)
+fun PrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    enabled: Boolean = true,
+) {
+    PillButton(text, onClick, Covered, OnCovered, modifier, icon, enabled)
 }
 
 /** A lesser action: full-width see-through pill. */
@@ -210,7 +216,15 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 }
 
 @Composable
-private fun PillButton(text: String, onClick: () -> Unit, bg: Color, fg: Color, modifier: Modifier, icon: ImageVector?) {
+private fun PillButton(
+    text: String,
+    onClick: () -> Unit,
+    bg: Color,
+    fg: Color,
+    modifier: Modifier,
+    icon: ImageVector?,
+    enabled: Boolean = true,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -218,14 +232,15 @@ private fun PillButton(text: String, onClick: () -> Unit, bg: Color, fg: Color, 
             .fillMaxWidth()
             .height(54.dp)
             .clip(CircleShape)
-            .background(bg)
-            .clickable(role = Role.Button, onClick = onClick),
+            .background(if (enabled) bg else Mist.copy(alpha = 0.10f))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
     ) {
+        val color = if (enabled) fg else Mist.copy(alpha = 0.4f)
         if (icon != null) {
-            Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(10.dp))
         }
-        Text(text, color = fg, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+        Text(text, color = color, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 

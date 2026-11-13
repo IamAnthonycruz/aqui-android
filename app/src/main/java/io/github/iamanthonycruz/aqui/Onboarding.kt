@@ -12,6 +12,13 @@ object Onboarding {
         SetupPage.BATTERY -> s.battery
     }
 
+    /**
+     * Whether to open the walkthrough at launch. Its last page (not an emergency service, with a
+     * checkbox) shows until ticked once, so people who set up before it existed see just that page.
+     */
+    fun showAtLaunch(onboarded: Boolean, notEmergencyOk: Boolean, s: PermState): Boolean =
+        !notEmergencyOk || (!onboarded && next(s) != null)
+
     /** The page to show, starting at [from] (a page index), or null when the walkthrough is over. */
     fun next(s: PermState, from: Int = 0): SetupPage? =
         SetupPage.entries.drop(from).firstOrNull { !done(it, s) }

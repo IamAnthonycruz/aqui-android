@@ -32,12 +32,16 @@ fun AquiApp() {
     val nav = rememberNavController()
     val context = LocalContext.current
     val first = remember {
-        if (!Prefs.isOnboarded(context) && Onboarding.next(Perms.state(context)) != null) WELCOME else START
+        val show = Onboarding.showAtLaunch(Prefs.isOnboarded(context), Prefs.isNotEmergencyOk(context), Perms.state(context))
+        if (show) WELCOME else START
     }
     NavHost(navController = nav, startDestination = first) {
         composable(WELCOME) {
-            WelcomeRoute(onDone = {
+            // Set up before the last page existed: only that page, no permission pages again.
+            val askPermissions = remember { !Prefs.isOnboarded(context) }
+            WelcomeRoute(askPermissions = askPermissions, onDone = {
                 Prefs.setOnboarded(context)
+                Prefs.setNotEmergencyOk(context)
                 nav.navigate(START) { popUpTo(WELCOME) { inclusive = true } }
             })
         }

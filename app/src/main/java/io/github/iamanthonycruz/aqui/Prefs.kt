@@ -7,6 +7,7 @@ object Prefs {
     private const val FILE = "aqui"
     private const val KEY_ENABLED = "enabled"
     private const val KEY_ONBOARDED = "onboarded"
+    private const val KEY_NOT_EMERGENCY_OK = "not_emergency_ok"
     private const val KEY_LOW_BATTERY_FIRED = "low_battery_fired"
     private const val KEY_STAY_LAT = "stay_lat"
     private const val KEY_STAY_LNG = "stay_lng"
@@ -22,6 +23,10 @@ object Prefs {
     /** The first-launch permission walkthrough was finished or skipped through. */
     fun isOnboarded(c: Context) = sp(c).getBoolean(KEY_ONBOARDED, false)
     fun setOnboarded(c: Context) = sp(c).edit().putBoolean(KEY_ONBOARDED, true).apply()
+
+    /** Ticked "I understand Aqui! is not an emergency service" on the last setup page. */
+    fun isNotEmergencyOk(c: Context) = sp(c).getBoolean(KEY_NOT_EMERGENCY_OK, false)
+    fun setNotEmergencyOk(c: Context) = sp(c).edit().putBoolean(KEY_NOT_EMERGENCY_OK, true).apply()
 
     fun isEnabled(c: Context) = sp(c).getBoolean(KEY_ENABLED, false)
     fun setEnabled(c: Context, v: Boolean) = sp(c).edit().putBoolean(KEY_ENABLED, v).apply()

@@ -24,6 +24,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatteryFull
@@ -31,6 +34,9 @@ import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Sms
 import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +68,7 @@ import io.github.iamanthonycruz.aqui.ui.theme.Alert
 import io.github.iamanthonycruz.aqui.ui.theme.Covered
 import io.github.iamanthonycruz.aqui.ui.theme.AquiTheme
 import io.github.iamanthonycruz.aqui.ui.theme.Mist
+import io.github.iamanthonycruz.aqui.ui.theme.OnCovered
 
 /** What one walkthrough page says. */
 private data class PageText(
@@ -129,9 +137,12 @@ private fun mainPermission(page: SetupPage): String? = when (page) {
     SetupPage.BATTERY -> null
 }
 
-/** First launch: one page per permission, each saying why. Already-allowed pages are skipped. */
+/**
+ * First launch: one page per permission, each saying why (already-allowed pages are skipped), then
+ * the not-an-emergency-service page, which needs its box ticked. [askPermissions] false = only that last page.
+ */
 @Composable
-fun WelcomeRoute(onDone: () -> Unit) {
+fun WelcomeRoute(askPermissions: Boolean = true, onDone: () -> Unit) {
     val context = LocalContext.current
     var perms by remember { mutableStateOf(Perms.state(context)) }
     /** Index of the page we're on or past. Skipping or allowing moves it on. */
@@ -147,14 +158,14 @@ fun WelcomeRoute(onDone: () -> Unit) {
         onPauseOrDispose { }
     }
 
-    val page = Onboarding.next(perms, from)
-    /** The first page this walkthrough showed: it carries the not-an-emergency-service note. */
-    val firstPage by rememberSaveable { mutableIntStateOf(page?.ordinal ?: 0) }
+    val page = if (askPermissions) Onboarding.next(perms, from) else null
     LaunchedEffect(page) {
-        if (page == null) onDone()
-        else if (page.ordinal != from) { from = page.ordinal; refused = false; blocked = false }
+        if (page != null && page.ordinal != from) { from = page.ordinal; refused = false; blocked = false }
     }
-    if (page == null) return
+    if (page == null) {
+        NotEmergencyScreen(showSteps = askPermissions, onDone = onDone)
+        return
+    }
 
     fun afterAnswer() {
         perms = Perms.state(context)
@@ -201,7 +212,6 @@ fun WelcomeRoute(onDone: () -> Unit) {
         perms = perms,
         refused = refused,
         blocked = blocked,
-        showNotice = page.ordinal == firstPage,
         onAllow = ::ask,
         onSkip = { from = page.ordinal + 1; refused = false; blocked = false },
     )
@@ -215,7 +225,6 @@ fun WelcomeScreen(
     blocked: Boolean,
     onAllow: () -> Unit,
     onSkip: () -> Unit,
-    showNotice: Boolean = false,
 ) {
     val t = textFor(page)
     val without = if (page == SetupPage.LOCATION && perms.approximateOnly) {
@@ -243,13 +252,6 @@ fun WelcomeScreen(
             t.why,
             color = Mist.copy(alpha = 0.75f), fontSize = 17.sp, lineHeight = 24.sp, textAlign = TextAlign.Center,
         )
-        if (showNotice) {
-            Spacer(Modifier.height(20.dp))
-            Text(
-                NOT_EMERGENCY,
-                color = Mist.copy(alpha = 0.6f), fontSize = 14.sp, lineHeight = 20.sp, textAlign = TextAlign.Center,
-            )
-        }
         Spacer(Modifier.weight(1f))
 
         if (refused) {
@@ -278,14 +280,72 @@ fun WelcomeScreen(
             Text("Skip for now", color = Mist.copy(alpha = 0.6f), fontSize = 15.sp)
         }
         Spacer(Modifier.height(8.dp))
-        StepDots(current = page.ordinal, total = SetupPage.entries.size)
+        StepDots(current = page.ordinal, total = STEPS)
     }
 }
 
-/** Shown once, on the first setup page: the app is a convenience, not a safety guarantee. */
-const val NOT_EMERGENCY =
-    "Aqui! helps people know where you are, but it's not an emergency service. " +
-        "Texts can be late or fail. In an emergency, call 911."
+/** The permission pages plus the last, not-an-emergency-service page. */
+private val STEPS = SetupPage.entries.size + 1
+
+/** The last setup page: the app is a convenience, not a safety guarantee. Can't go on until ticked. */
+@Composable
+fun NotEmergencyScreen(showSteps: Boolean, onDone: () -> Unit) {
+    var understood by rememberSaveable { mutableStateOf(false) }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .duskBackground()
+            .safeDrawingPadding()
+            .padding(horizontal = 28.dp, vertical = 20.dp),
+    ) {
+        Spacer(Modifier.weight(1f))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(112.dp).clip(CircleShape).background(Alert.copy(alpha = 0.14f)),
+        ) {
+            Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = Alert, modifier = Modifier.size(56.dp))
+        }
+        Spacer(Modifier.height(32.dp))
+        Text("Before you start", color = Mist, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(14.dp))
+        Text(
+            "Aqui! is not an emergency service. A text can be late or never sent: no signal, a dead battery, " +
+                "or a phone that pauses apps.",
+            color = Mist.copy(alpha = 0.75f), fontSize = 17.sp, lineHeight = 24.sp, textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(14.dp))
+        Text("In an emergency, call 911.", color = Mist, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.weight(1f))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .toggleable(value = understood, role = Role.Checkbox, onValueChange = { understood = it })
+                .padding(vertical = 8.dp),
+        ) {
+            Checkbox(
+                checked = understood,
+                onCheckedChange = null,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = Covered,
+                    checkmarkColor = OnCovered,
+                    uncheckedColor = Mist.copy(alpha = 0.5f),
+                ),
+            )
+            Spacer(Modifier.width(12.dp))
+            Text("I understand Aqui! is not an emergency service", color = Mist, fontSize = 16.sp, lineHeight = 22.sp)
+        }
+        Spacer(Modifier.height(14.dp))
+        PrimaryButton(text = "Get started", onClick = onDone, enabled = understood, modifier = Modifier.fillMaxWidth())
+        if (showSteps) {
+            Spacer(Modifier.height(24.dp))
+            StepDots(current = STEPS - 1, total = STEPS)
+        }
+    }
+}
 
 @Composable
 private fun StepDots(current: Int, total: Int) {
@@ -310,9 +370,15 @@ private fun WelcomePreview() {
         WelcomeScreen(
             page = SetupPage.LOCATION,
             perms = PermState(location = false, backgroundLocation = false, sms = false, battery = false),
-            refused = false, blocked = false, onAllow = {}, onSkip = {}, showNotice = true,
+            refused = false, blocked = false, onAllow = {}, onSkip = {},
         )
     }
+}
+
+@Preview(widthDp = 393, heightDp = 851)
+@Composable
+private fun NotEmergencyPreview() {
+    AquiTheme { NotEmergencyScreen(showSteps = true, onDone = {}) }
 }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {

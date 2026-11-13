@@ -1,6 +1,8 @@
 package io.github.iamanthonycruz.aqui
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -28,4 +30,19 @@ class OnboardingTest {
 
     @Test
     fun `past the last page is the end`() = assertNull(Onboarding.next(none, from = SetupPage.entries.size))
+
+    @Test
+    fun `fresh install opens setup`() = assertTrue(Onboarding.showAtLaunch(false, false, none))
+
+    @Test
+    fun `everything allowed still opens setup for the not-an-emergency page`() =
+        assertTrue(Onboarding.showAtLaunch(false, false, all))
+
+    @Test
+    fun `set up before the notice page existed opens setup once`() =
+        assertTrue(Onboarding.showAtLaunch(onboarded = true, notEmergencyOk = false, s = all))
+
+    @Test
+    fun `ticked and set up goes straight to start`() =
+        assertFalse(Onboarding.showAtLaunch(onboarded = true, notEmergencyOk = true, s = none))
 }
