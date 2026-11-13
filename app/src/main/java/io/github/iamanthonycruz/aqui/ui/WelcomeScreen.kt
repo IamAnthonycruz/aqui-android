@@ -148,6 +148,8 @@ fun WelcomeRoute(onDone: () -> Unit) {
     }
 
     val page = Onboarding.next(perms, from)
+    /** The first page this walkthrough showed: it carries the not-an-emergency-service note. */
+    val firstPage by rememberSaveable { mutableIntStateOf(page?.ordinal ?: 0) }
     LaunchedEffect(page) {
         if (page == null) onDone()
         else if (page.ordinal != from) { from = page.ordinal; refused = false; blocked = false }
@@ -199,6 +201,7 @@ fun WelcomeRoute(onDone: () -> Unit) {
         perms = perms,
         refused = refused,
         blocked = blocked,
+        showNotice = page.ordinal == firstPage,
         onAllow = ::ask,
         onSkip = { from = page.ordinal + 1; refused = false; blocked = false },
     )
@@ -212,6 +215,7 @@ fun WelcomeScreen(
     blocked: Boolean,
     onAllow: () -> Unit,
     onSkip: () -> Unit,
+    showNotice: Boolean = false,
 ) {
     val t = textFor(page)
     val without = if (page == SetupPage.LOCATION && perms.approximateOnly) {
@@ -239,6 +243,13 @@ fun WelcomeScreen(
             t.why,
             color = Mist.copy(alpha = 0.75f), fontSize = 17.sp, lineHeight = 24.sp, textAlign = TextAlign.Center,
         )
+        if (showNotice) {
+            Spacer(Modifier.height(20.dp))
+            Text(
+                NOT_EMERGENCY,
+                color = Mist.copy(alpha = 0.6f), fontSize = 14.sp, lineHeight = 20.sp, textAlign = TextAlign.Center,
+            )
+        }
         Spacer(Modifier.weight(1f))
 
         if (refused) {
@@ -271,6 +282,11 @@ fun WelcomeScreen(
     }
 }
 
+/** Shown once, on the first setup page: the app is a convenience, not a safety guarantee. */
+const val NOT_EMERGENCY =
+    "Aqui! helps people know where you are, but it's not an emergency service. " +
+        "Texts can be late or fail. In an emergency, call 911."
+
 @Composable
 private fun StepDots(current: Int, total: Int) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -294,7 +310,7 @@ private fun WelcomePreview() {
         WelcomeScreen(
             page = SetupPage.LOCATION,
             perms = PermState(location = false, backgroundLocation = false, sms = false, battery = false),
-            refused = false, blocked = false, onAllow = {}, onSkip = {},
+            refused = false, blocked = false, onAllow = {}, onSkip = {}, showNotice = true,
         )
     }
 }
